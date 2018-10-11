@@ -65,4 +65,18 @@ class ClientTest {
     okhttp3.Response response = client.execute(new Request(okRequest)).okResponse();
     assertThat(response.code(), is(200));
   }
+
+  @Test
+  void testInterceptorLogger() {
+    Client interceptedClient = new Client.Builder()
+        .baseUrl("http://httpbin.org")
+        .addInterceptor(chain -> {
+      final okhttp3.Response response = chain.proceed(chain.request());
+      return response.newBuilder().addHeader("X-Interceptor", "T-1000").build();
+    }).build();
+
+    Response response = interceptedClient.get("/get");
+    assertThat(response.code(), is(200));
+    assertThat(response.header("X-Interceptor"), is("T-1000"));
+  }
 }
